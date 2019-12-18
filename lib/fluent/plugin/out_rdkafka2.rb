@@ -4,6 +4,8 @@ require 'fluent/plugin/kafka_plugin_util'
 
 require 'rdkafka'
 
+require 'json'
+
 class Rdkafka::Producer
   # return false if producer is forcefully closed, otherwise return true
   def close(timeout = nil)
@@ -39,6 +41,13 @@ DESC
     config_param :default_message_key, :string, :default => nil
     config_param :partition_key, :string, :default => 'partition', :desc => "Field for kafka partition"
     config_param :default_partition, :integer, :default => nil
+    config_param :rr_partitioning, :string, :default => nil,
+                 :desc => <<-DESC
+Setup round-robin partitioning type.
+Can be 'count' what means record count in threshold or 'size' what means message size in threshold
+DESC
+    config_param :rr_partitioning_threshold, :integer, :default => nil
+    config_param :rr_partitioning_partitions, :list, :default => []
     config_param :output_data_type, :string, :default => 'json', :obsoleted => "Use <format> section instead"
     config_param :output_include_tag, :bool, :default => false, :obsoleted => "Use <inject> section instead"
     config_param :output_include_time, :bool, :default => false, :obsoleted => "Use <inject> section instead"
@@ -102,6 +111,9 @@ DESC
       @producers = nil
       @producers_mutex = nil
       @shared_producer = nil
+
+      @rr_partition_id = nil
+      @rr_threshold_value = nil
     end
 
     def configure(conf)
@@ -277,7 +289,11 @@ DESC
           begin
             record = inject_values_to_record(tag, time, record)
             record.delete(@topic_key) if @exclude_topic_key
-            partition = (@exclude_partition ? record.delete(@partition_key) : record[@partition_key]) || @default_partition
+            if rr_partitioning
+              partition = round_robin_next(record)
+            else
+              partition = (@exclude_partition ? record.delete(@partition_key) : record[@partition_key]) || @default_partition
+            end
             message_key = (@exclude_message_key ? record.delete(@message_key_key) : record[@message_key_key]) || @default_message_key
 
             @headers_from_record_accessors.each do |key, header_accessor|
@@ -329,6 +345,42 @@ DESC
           end
         end
       end
+    end
+    
+    def round_robin_next(record)
+      if @rr_partition_id.nil?
+        @rr_partition_id = 0
+        @rr_threshold_value = 0
+        if @rr_partitioning_partitions.nil?
+        end
+        if @rr_partitioning_threshold.nil?
+          if @rr_partitioning=='count'
+            value = 10
+          elsif @rr_partitioning=='size'
+            value = 10000
+          else
+            value = 0
+          end
+          @rr_partitioning_threshold = value
+        end
+      end
+      #
+      if @rr_partitioning=='count'
+        value = 1
+      elsif @rr_partitioning=='size'
+        value = JSON.dump(record).length
+      else
+        value = 0
+      end
+      @rr_threshold_value += value
+      while @rr_threshold_value >= @rr_partitioning_threshold do
+        @rr_partition_id += 1
+        @rr_threshold_value -= @rr_partitioning_threshold
+        if @rr_partition_id >= @rr_partitioning_partitions.length
+          @rr_partition_id -= @rr_partitioning_partitions.length
+        end
+      end
+      @rr_partitioning_partitions[@rr_partition_id]
     end
   end
 end
