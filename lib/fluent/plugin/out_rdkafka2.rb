@@ -41,6 +41,7 @@ DESC
     config_param :default_message_key, :string, :default => nil
     config_param :partition_key, :string, :default => 'partition', :desc => "Field for kafka partition"
     config_param :default_partition, :integer, :default => nil
+
     config_param :rr_partitioning, :string, :default => nil,
                  :desc => <<-DESC
 Setup round-robin partitioning type.
@@ -295,7 +296,7 @@ DESC
           begin
             record = inject_values_to_record(tag, time, record)
             record.delete(@topic_key) if @exclude_topic_key
-            if rr_partitioning
+            if @rr_partitioning
               partition = round_robin_next(record)
             else
               partition = (@exclude_partition ? record.delete(@partition_key) : record[@partition_key]) || @default_partition
