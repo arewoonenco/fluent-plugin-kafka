@@ -349,10 +349,11 @@ DESC
     
     def round_robin_next(record)
       if @rr_partition_id.nil?
-        @rr_partition_id = 0
-        @rr_threshold_value = 0
         if @rr_partitioning_partitions.nil?
+          log.warn "kafka2 :rr_partitioning_partitions is not set!"
+          return -1 # default
         end
+        @rr_threshold_value = 0
         if @rr_partitioning_threshold.nil?
           if @rr_partitioning=='count'
             value = 10
@@ -363,6 +364,7 @@ DESC
           end
           @rr_partitioning_threshold = value
         end
+        @rr_partition_id = 0
       end
       #
       if @rr_partitioning=='count'
@@ -379,6 +381,7 @@ DESC
         if @rr_partition_id >= @rr_partitioning_partitions.length
           @rr_partition_id -= @rr_partitioning_partitions.length
         end
+        log.warn "kafka2 switch partition to #{@rr_partitioning_partitions[@rr_partition_id]}"
       end
       @rr_partitioning_partitions[@rr_partition_id]
     end
