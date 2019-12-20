@@ -397,7 +397,7 @@ DESC
         end
       end
       if @rr_partitioning_debug>0
-        @rr_debug_metric["p#{@rr_partition_list[@rr_partition_id]}" += 1
+        @rr_debug_metric["p#{@rr_partition_list[@rr_partition_id]}"] += 1
         @rr_debug_cnt += 1
         if @rr_debug_cnt >= @rr_partitioning_metricdump
           @rr_debug_cnt = 0

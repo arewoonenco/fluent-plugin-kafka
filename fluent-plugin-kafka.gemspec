@@ -8,7 +8,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = "https://github.com/arewoonenco/fluent-plugin-kafka"
   gem.license       = "Apache-2.0"
 
-  gem.files         = `git ls-files`.split($\)
+  gem.files         = `git ls-files | grep -v '\.gem'`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "fluent-plugin-kafka"
