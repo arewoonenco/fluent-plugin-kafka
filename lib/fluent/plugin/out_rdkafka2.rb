@@ -47,7 +47,10 @@ Setup round-robin partitioning type.
 Can be 'count' what means record count in threshold or 'size' what means message size in threshold
 DESC
     config_param :rr_partitioning_threshold, :integer, :default => nil
-    config_param :rr_partitioning_partitions, :list, :default => []
+    config_param :rr_partitioning_partitions, :string, :default => nil
+    config_param :rr_partitioning_debug, :int, :default => 0
+    config_param :rr_partitioning_metricdump, :int, :default => 1000
+
     config_param :output_data_type, :string, :default => 'json', :obsoleted => "Use <format> section instead"
     config_param :output_include_tag, :bool, :default => false, :obsoleted => "Use <inject> section instead"
     config_param :output_include_time, :bool, :default => false, :obsoleted => "Use <inject> section instead"
@@ -112,8 +115,11 @@ DESC
       @producers_mutex = nil
       @shared_producer = nil
 
+      @rr_partition_list = []
       @rr_partition_id = nil
       @rr_threshold_value = nil
+      @rr_debug_cnt = 0
+      @rr_debug_metric = nil
     end
 
     def configure(conf)
@@ -353,6 +359,10 @@ DESC
           log.warn "kafka2 :rr_partitioning_partitions is not set!"
           return -1 # default
         end
+        @rr_partition_list = @rr_partitioning_partitions.split(',')
+        @rr_partition_list.each { |pid|
+          @rr_debug_metric["p#{pid}"] = 0
+        }
         @rr_threshold_value = 0
         if @rr_partitioning_threshold.nil?
           if @rr_partitioning=='count'
@@ -364,6 +374,7 @@ DESC
           end
           @rr_partitioning_threshold = value
         end
+        @rr_debug_metric = {}
         @rr_partition_id = 0
       end
       #
@@ -378,12 +389,22 @@ DESC
       while @rr_threshold_value >= @rr_partitioning_threshold do
         @rr_partition_id += 1
         @rr_threshold_value -= @rr_partitioning_threshold
-        if @rr_partition_id >= @rr_partitioning_partitions.length
-          @rr_partition_id -= @rr_partitioning_partitions.length
+        if @rr_partition_id >= @@rr_partition_list.length
+          @rr_partition_id -= @@rr_partition_list.length
         end
-        log.warn "kafka2 switch partition to #{@rr_partitioning_partitions[@rr_partition_id]}"
+        if @rr_partitioning_debug>1
+          #log.warn "kafka2 switch partition to #{@rr_partition_list[@rr_partition_id]}"
+        end
       end
-      @rr_partitioning_partitions[@rr_partition_id]
+      if @rr_partitioning_debug>0
+        @rr_debug_metric["p#{@rr_partition_list[@rr_partition_id]}" += 1
+        @rr_debug_cnt += 1
+        if @rr_debug_cnt >= @rr_partitioning_metricdump
+          @rr_debug_cnt = 0
+          log.warn "kafka2 metrics: #{JSON.dump(@rr_debug_metric)}"
+        end
+      end
+      @rr_partition_list[@rr_partition_id]
     end
   end
 end
