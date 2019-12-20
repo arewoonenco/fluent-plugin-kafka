@@ -49,8 +49,8 @@ Can be 'count' what means record count in threshold or 'size' what means message
 DESC
     config_param :rr_partitioning_threshold, :integer, :default => nil
     config_param :rr_partitioning_partitions, :string, :default => nil
-    config_param :rr_partitioning_debug, :int, :default => 0
-    config_param :rr_partitioning_metricdump, :int, :default => 1000
+    config_param :rr_partitioning_debug, :integer, :default => 0
+    config_param :rr_partitioning_metricdump, :integer, :default => 1000
 
     config_param :output_data_type, :string, :default => 'json', :obsoleted => "Use <format> section instead"
     config_param :output_include_tag, :bool, :default => false, :obsoleted => "Use <inject> section instead"
