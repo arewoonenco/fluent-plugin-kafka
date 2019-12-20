@@ -74,6 +74,7 @@ Add a regular expression to capture ActiveSupport notifications from the Kafka c
 requires activesupport gem - records will be generated under fluent_kafka_stats.**
 DESC
 
+
     config_param :rr_partitioning, :string, :default => nil,
                  :desc => <<-DESC
 Setup round-robin partitioning type.
