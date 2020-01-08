@@ -272,7 +272,7 @@ DESC
               next
             end
           rescue StandardError => e
-            log.warn "unexpected error during format record. Skip broken event:", :error => e.to_s, :error_class => e.class.to_s, :time => time, :record => record
+            log.warn "unexpected error during format record. Skip broken event:", :error => e.to_s, :error_class => e.class.to_s, :time => time, :record => record, :stack => e.backtrace
             next
           end
 
