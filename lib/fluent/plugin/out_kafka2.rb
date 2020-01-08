@@ -367,7 +367,7 @@ DESC
         end
         @rr_partition_list[@rr_partition_id]
       rescue StandardError => e
-        log.warn "Kafka error", :error => e.to_s, :error_class => e.class.to_s, :time => time, :stack => e.backtrace
+        log.warn "Kafka error", :error => e.to_s, :error_class => e.class.to_s, :stack => e.backtrace
         log.warn_backtrace backtrace=e.backtrace
         return 0
       end
