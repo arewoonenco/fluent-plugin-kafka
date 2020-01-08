@@ -348,8 +348,8 @@ DESC
       while @rr_threshold_value >= @rr_partitioning_threshold do
         @rr_partition_id += 1
         @rr_threshold_value -= @rr_partitioning_threshold
-        if @rr_partition_id >= @@rr_partition_list.length
-          @rr_partition_id -= @@rr_partition_list.length
+        if @rr_partition_id >= @rr_partition_list.length
+          @rr_partition_id -= @rr_partition_list.length
         end
         if @rr_partitioning_debug>1
           #log.warn "kafka2 switch partition to #{@rr_partition_list[@rr_partition_id]}"
