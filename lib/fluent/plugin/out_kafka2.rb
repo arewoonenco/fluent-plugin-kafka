@@ -320,7 +320,10 @@ DESC
             log.warn "kafka2 :rr_partitioning_partitions is not set!"
             return -1 # default
           end
-          @rr_partition_list = @rr_partitioning_partitions.split(',')
+          @rr_partition_list = []
+          @rr_partitioning_partitions.split(',') { |spid|
+            @rr_partition_list << spid.to_i
+          }
           @rr_debug_metric = {}
           @rr_partition_list.each { |pid|
             @rr_debug_metric["p#{pid}"] = 0
