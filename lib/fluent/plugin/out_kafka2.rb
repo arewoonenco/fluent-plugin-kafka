@@ -313,57 +313,62 @@ DESC
     end
 
     def round_robin_next(record)
-      if @rr_partition_id.nil?
-        if @rr_partitioning_partitions.nil?
-          log.warn "kafka2 :rr_partitioning_partitions is not set!"
-          return -1 # default
-        end
-        @rr_partition_list = @rr_partitioning_partitions.split(',')
-        @rr_partition_list.each { |pid|
-          @rr_debug_metric["p#{pid}"] = 0
-        }
-        @rr_threshold_value = 0
-        if @rr_partitioning_threshold.nil?
-          if @rr_partitioning=='count'
-            value = 10
-          elsif @rr_partitioning=='size'
-            value = 10000
-          else
-            value = 0
+      begin
+        if @rr_partition_id.nil?
+          if @rr_partitioning_partitions.nil?
+            log.warn "kafka2 :rr_partitioning_partitions is not set!"
+            return -1 # default
           end
-          @rr_partitioning_threshold = value
+          @rr_partition_list = @rr_partitioning_partitions.split(',')
+          @rr_partition_list.each { |pid|
+            @rr_debug_metric["p#{pid}"] = 0
+          }
+          @rr_threshold_value = 0
+          if @rr_partitioning_threshold.nil?
+            if @rr_partitioning=='count'
+              value = 10
+            elsif @rr_partitioning=='size'
+              value = 10000
+            else
+              value = 0
+            end
+            @rr_partitioning_threshold = value
+          end
+          @rr_debug_metric = {}
+          @rr_partition_id = 0
         end
-        @rr_debug_metric = {}
-        @rr_partition_id = 0
-      end
-      #
-      if @rr_partitioning=='count'
-        value = 1
-      elsif @rr_partitioning=='size'
-        value = JSON.dump(record).length
-      else
-        value = 0
-      end
-      @rr_threshold_value += value
-      while @rr_threshold_value >= @rr_partitioning_threshold do
-        @rr_partition_id += 1
-        @rr_threshold_value -= @rr_partitioning_threshold
-        if @rr_partition_id >= @rr_partition_list.length
-          @rr_partition_id -= @rr_partition_list.length
+        #
+        if @rr_partitioning=='count'
+          value = 1
+        elsif @rr_partitioning=='size'
+          value = JSON.dump(record).length
+        else
+          value = 0
         end
-        if @rr_partitioning_debug>1
-          #log.warn "kafka2 switch partition to #{@rr_partition_list[@rr_partition_id]}"
+        @rr_threshold_value += value
+        while @rr_threshold_value >= @rr_partitioning_threshold do
+          @rr_partition_id += 1
+          @rr_threshold_value -= @rr_partitioning_threshold
+          if @rr_partition_id >= @rr_partition_list.length
+            @rr_partition_id -= @rr_partition_list.length
+          end
+          if @rr_partitioning_debug>1
+            #log.warn "kafka2 switch partition to #{@rr_partition_list[@rr_partition_id]}"
+          end
         end
-      end
-      if @rr_partitioning_debug>0
-        @rr_debug_metric["p#{@rr_partition_list[@rr_partition_id]}"] += 1
-        @rr_debug_cnt += 1
-        if @rr_debug_cnt >= @rr_partitioning_metricdump
-          @rr_debug_cnt = 0
-          log.warn "kafka2 metrics: #{JSON.dump(@rr_debug_metric)}"
+        if @rr_partitioning_debug>0
+          @rr_debug_metric["p#{@rr_partition_list[@rr_partition_id]}"] += 1
+          @rr_debug_cnt += 1
+          if @rr_debug_cnt >= @rr_partitioning_metricdump
+            @rr_debug_cnt = 0
+            log.warn "kafka2 metrics: #{JSON.dump(@rr_debug_metric)}"
+          end
         end
+        @rr_partition_list[@rr_partition_id]
+      rescue StandardError => e
+        log.warn "Kafka error", :error => e.to_s, :error_class => e.class.to_s, :time => time, :stack => e.backtrace
+        return 0
       end
-      @rr_partition_list[@rr_partition_id]
     end
   end
 end
