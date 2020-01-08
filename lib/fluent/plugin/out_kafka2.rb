@@ -324,10 +324,12 @@ DESC
           @rr_partitioning_partitions.split(',').each { |spid|
             @rr_partition_list << spid.to_i
           }
+          log.warn "kafka2 partitions: #{JSON.dump(@rr_partition_list)}"
           @rr_debug_metric = {}
           @rr_partition_list.each { |pid|
             @rr_debug_metric["p#{pid}"] = 0
           }
+          log.warn "kafka2 debug metrics: #{JSON.dump(@rr_debug_metric)}"
           @rr_threshold_value = 0
           if @rr_partitioning_threshold.nil?
             if @rr_partitioning=='count'
