@@ -321,6 +321,7 @@ DESC
             return -1 # default
           end
           @rr_partition_list = @rr_partitioning_partitions.split(',')
+          @rr_debug_metric = {}
           @rr_partition_list.each { |pid|
             @rr_debug_metric["p#{pid}"] = 0
           }
@@ -335,7 +336,6 @@ DESC
             end
             @rr_partitioning_threshold = value
           end
-          @rr_debug_metric = {}
           @rr_partition_id = 0
         end
         #
