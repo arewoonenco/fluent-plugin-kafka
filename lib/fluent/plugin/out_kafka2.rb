@@ -321,7 +321,7 @@ DESC
             return -1 # default
           end
           @rr_partition_list = []
-          @rr_partitioning_partitions.split(',') { |spid|
+          @rr_partitioning_partitions.split(',').each { |spid|
             @rr_partition_list << spid.to_i
           }
           @rr_debug_metric = {}
