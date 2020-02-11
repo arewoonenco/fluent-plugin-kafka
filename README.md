@@ -4,8 +4,6 @@
 
 A fluentd plugin to both consume and produce data for Apache Kafka.
 
-TODO: Also, I need to write tests
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -180,7 +178,7 @@ This plugin is for fluentd v1.0 or later. This will be `out_kafka` plugin in the
 
       # ruby-kafka producer options
       idempotent        (bool)    :default => false
-      sasl_over_ssl     (bool)    :default => false
+      sasl_over_ssl     (bool)    :default => true
       max_send_retries  (integer) :default => 1
       required_acks     (integer) :default => -1
       ack_timeout       (integer) :default => nil (Use default of ruby-kafka)
@@ -277,6 +275,7 @@ The configuration format is jsonpath. It is descibed in https://docs.fluentd.org
 ### Buffered output plugin
 
 This plugin uses ruby-kafka producer for writing data. This plugin is for v0.12. If you use v1, see `kafka2`.
+Support of fluentd v0.12 has ended. `kafka_buffered` will be an alias of `kafka2` and will be removed in the future.
 
     <match app.**>
       @type kafka_buffered
@@ -304,7 +303,7 @@ This plugin uses ruby-kafka producer for writing data. This plugin is for v0.12.
 
       # ruby-kafka producer options
       idempotent                   (bool)    :default => false
-      sasl_over_ssl                (bool)    :default => false
+      sasl_over_ssl                (bool)    :default => true
       max_send_retries             (integer) :default => 1
       required_acks                (integer) :default => -1
       ack_timeout                  (integer) :default => nil (Use default of ruby-kafka)
