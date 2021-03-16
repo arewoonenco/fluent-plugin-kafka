@@ -78,12 +78,28 @@ DESC
     config_param :rr_partitioning, :string, :default => nil,
                  :desc => <<-DESC
 Setup round-robin partitioning type.
-Can be 'count' what means record count in threshold or 'size' what means message size in threshold
+Can be 'count' what means record count in threshold or 'size' what means message size in threshold.
 DESC
-    config_param :rr_partitioning_threshold, :integer, :default => nil
-    config_param :rr_partitioning_partitions, :string, :default => nil
-    config_param :rr_partitioning_debug, :integer, :default => 0
-    config_param :rr_partitioning_metricdump, :integer, :default => 1000
+    config_param :rr_partitioning_threshold, :integer, :default => nil,
+Threshold define message count (when type is count) or message sum bytes (when type is size).
+After reach this threshlod message goes to next partition.
+                 :desc => <<-DESC
+DESC
+    config_param :rr_partitioning_partitions, :string, :default => nil,
+Partition defined as comma-delimited list of included partitions in given order.
+Also supports range notifications like N..M means starting N and up to M.
+  sample of 24-partitioned rr_partitions: "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+  sample of ranged 24-partitioned rr_partitions: "0..23"
+                 :desc => <<-DESC
+DESC
+    config_param :rr_partitioning_debug, :integer, :default => 0,
+This is debug level, increase it more to give more details in log.
+                 :desc => <<-DESC
+DESC
+    config_param :rr_partitioning_metricdump, :integer, :default => 1000,
+This is count of messages, the plugin will dump metrics after reaching this value.
+                 :desc => <<-DESC
+DESC
 
 
     config_section :buffer do
@@ -322,7 +338,12 @@ DESC
           end
           @rr_partition_list = []
           @rr_partitioning_partitions.split(',').each { |spid|
-            @rr_partition_list << spid.to_i
+            if spid.include? '..'
+              spid_r = spid.partition('..')
+              @rr_partition_list[@rr_partition_list..0] = (spid_r[0].to_i..(spid_r[2].to_i+1)).to_a
+            else
+              @rr_partition_list << spid.to_i
+            end
           }
           log.warn "kafka2 partitions: #{JSON.dump(@rr_partition_list)}"
           @rr_debug_metric = {}
