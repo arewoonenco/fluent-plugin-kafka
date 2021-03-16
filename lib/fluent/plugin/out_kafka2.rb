@@ -90,6 +90,7 @@ Partition defined as comma-delimited list of included partitions in given order.
 Also supports range notifications like N..M means starting N and up to M.
   sample of 24-partitioned rr_partitions: "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
   sample of ranged 24-partitioned rr_partitions: "0..23"
+  sample of ranged all-partitioned rr_partitions: "*" - note that it is only for default_topic
                  :desc => <<-DESC
 DESC
     config_param :rr_partitioning_debug, :integer, :default => 0,
@@ -337,14 +338,19 @@ DESC
             return -1 # default
           end
           @rr_partition_list = []
-          @rr_partitioning_partitions.split(',').each { |spid|
-            if spid.include? '..'
-              spid_r = spid.partition('..')
-              @rr_partition_list[@rr_partition_list..0] = (spid_r[0].to_i..(spid_r[2].to_i+1)).to_a
-            else
-              @rr_partition_list << spid.to_i
-            end
-          }
+          if @rr_partitioning_partitions=='*'
+            spid_max = @kafka.partitions_for(@default_topic)
+            @rr_partition_list = (0..spid_max).to_a
+          else
+            @rr_partitioning_partitions.split(',').each { |spid|
+              if spid.include? '..'
+                spid_r = spid.partition('..')
+                @rr_partition_list[@rr_partition_list..0] = (spid_r[0].to_i..(spid_r[2].to_i+1)).to_a
+              else
+                @rr_partition_list << spid.to_i
+              end
+            }
+          end
           log.warn "kafka2 partitions: #{JSON.dump(@rr_partition_list)}"
           @rr_debug_metric = {}
           @rr_partition_list.each { |pid|
