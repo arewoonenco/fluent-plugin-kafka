@@ -81,25 +81,25 @@ Setup round-robin partitioning type.
 Can be 'count' what means record count in threshold or 'size' what means message size in threshold.
 DESC
     config_param :rr_partitioning_threshold, :integer, :default => nil,
+                 :desc => <<-DESC
 Threshold define message count (when type is count) or message sum bytes (when type is size).
 After reach this threshlod message goes to next partition.
-                 :desc => <<-DESC
 DESC
     config_param :rr_partitioning_partitions, :string, :default => nil,
+                 :desc => <<-DESC
 Partition defined as comma-delimited list of included partitions in given order.
 Also supports range notifications like N..M means starting N and up to M.
   sample of 24-partitioned rr_partitions: "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
   sample of ranged 24-partitioned rr_partitions: "0..23"
   sample of ranged all-partitioned rr_partitions: "*" - note that it is only for default_topic
-                 :desc => <<-DESC
 DESC
     config_param :rr_partitioning_debug, :integer, :default => 0,
-This is debug level, increase it more to give more details in log.
                  :desc => <<-DESC
+This is debug level, increase it more to give more details in log.
 DESC
     config_param :rr_partitioning_metricdump, :integer, :default => 1000,
-This is count of messages, the plugin will dump metrics after reaching this value.
                  :desc => <<-DESC
+This is count of messages, the plugin will dump metrics after reaching this value.
 DESC
 
 
