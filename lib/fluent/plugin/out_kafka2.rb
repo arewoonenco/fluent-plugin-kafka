@@ -340,12 +340,12 @@ DESC
           @rr_partition_list = []
           if @rr_partitioning_partitions=='*'
             spid_max = @kafka.partitions_for(@default_topic)
-            @rr_partition_list = (0..spid_max).to_a
+            @rr_partition_list = (0..(spid_max-1)).to_a
           else
             @rr_partitioning_partitions.split(',').each { |spid|
               if spid.include? '..'
                 spid_r = spid.partition('..')
-                @rr_partition_list[@rr_partition_list..0] = (spid_r[0].to_i..(spid_r[2].to_i+1)).to_a
+                @rr_partition_list[@rr_partition_list..0] = (spid_r[0].to_i..spid_r[2].to_i).to_a
               else
                 @rr_partition_list << spid.to_i
               end
